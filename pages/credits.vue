@@ -1,27 +1,27 @@
 <template>
-  <v-toolbar class="py-6 pl-2 mb-6" density="compact">
+  <v-card class="pt-3 px-2 mb-2">
     <v-row>
-      <v-col md="3" sm="12">
+      <v-col md="3" cols="8">
         <v-text-field label="Amount" prefix="$" v-model="values.amount"
           :error-messages="v$?.amount?.$errors?.map(e => e.$message)"></v-text-field>
       </v-col>
-      <v-col md="2" sm="6">
+      <v-col md="2" cols="4">
         <v-text-field label="Period" v-model="values.periods"
           :error-messages="v$?.periods?.$errors?.map(e => e.$message)"></v-text-field>
       </v-col>
-      <v-col md="2" sm="6">
+      <v-col md="2" cols="6">
         <v-select label="Select" :items="['Months', 'Years']" v-model="values.kind"
           :error-messages="v$?.kind?.$errors?.map(e => e.$message)"></v-select>
       </v-col>
-      <v-col md="2" sm="6">
+      <v-col md="2" cols="6">
         <v-text-field label="Rate" suffix="%" v-model="values.rate"
           :error-messages="v$?.rate?.$errors?.map(e => e.$message)"></v-text-field>
       </v-col>
-      <v-col md="2" sm="6" offset-md="1">
-        <v-btn size="x-large" color="primary" variant="tonal" rounded="shaped" @click="getResults">Calcular</v-btn>
+      <v-col md="2" cols="12" offset-md="1" xs="12">
+        <v-btn :class="mobile ? 'mb-2' : 'mt-2'" block size="x-large" color="primary" variant="tonal" rounded="shaped" @click="getResults">Calcular</v-btn>
       </v-col>
     </v-row>
-  </v-toolbar>
+  </v-card>
   <div v-if="Object.hasOwn(result, 'totalPayment')">
     <v-card class="mb-6">
       <v-row align="center" justify="center" class="px-4">
@@ -88,7 +88,10 @@
 
 <script setup>
 import { useVuelidate } from '@vuelidate/core'
-import { required, integer, decimal, between, minValue } from '@vuelidate/validators'
+import { required, integer, decimal, minValue } from '@vuelidate/validators'
+import { useDisplay } from 'vuetify'
+
+const { mobile } = useDisplay()
 
 const initialValues = {
   rate: null,
@@ -103,7 +106,7 @@ const rules = {
   rate: {
     required,
     decimal,
-    betweenValue: between(10, 100),
+    minValueValue: minValue(0),
     $autoDirty: true,
   },
   amount: {
@@ -125,7 +128,10 @@ const v$ = useVuelidate(rules, values)
 const result = ref({});
 const details = ref([]);
 
-const getResults = () => {
+const getResults = async () => {
+  const validForm = await v$.value.$validate();
+  if (!validForm) return;
+
   details.value = []
   const monthlyRate = ((values.value.rate / 100) / ((360 * 12) / 365))
   const monthlyPayment = values.value.amount / ((1 - (1 + monthlyRate)**-values.value.periods) / monthlyRate)

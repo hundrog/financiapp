@@ -11,7 +11,7 @@ const data = {
   labels: ['Interest', 'Principal'],
   datasets: [
     {
-      backgroundColor: ['#41B883', '#E46651'],
+      backgroundColor: ['#CDDC39', '#7E57C2'],
       data: [props.interest, props.principal]
     }
   ]
